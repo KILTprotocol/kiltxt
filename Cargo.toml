@@ -7,8 +7,10 @@ version = "0.1.0"
 
 [dependencies]
 clap = {version = "4.0.7", features = ["derive"]}
+derivative = "2.2.0"
 hex = "0.4.3"
 hex-literal = "0.3.4"
+log = "0.4.17"
 parity-scale-codec = "3.2.1"
 sp-core = "6.0.0"
 sp-keyring = "6.0.0"

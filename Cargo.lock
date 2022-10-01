@@ -2736,8 +2736,10 @@ name = "tx-builder"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "derivative",
  "hex",
  "hex-literal",
+ "log",
  "parity-scale-codec",
  "sp-core",
  "sp-keyring",

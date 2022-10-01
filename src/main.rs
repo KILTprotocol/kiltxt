@@ -1,26 +1,18 @@
-// Copyright 2019-2022 Parity Technologies (UK) Ltd.
-// This file is dual-licensed as Apache-2.0 or GPL-3.0.
-// see LICENSE for license details.
-
-//! To run this example, a local polkadot node should be running. Example verified against polkadot v0.9.28-9ffe6e9e3da.
-//!
-//! E.g.
-//! ```bash
-//! curl "https://github.com/paritytech/polkadot/releases/download/v0.9.28/polkadot" --output /usr/local/bin/polkadot --location
-//! polkadot --dev --tmp
-//! ```
+mod extrinsic_param;
 
 use clap::Parser;
+use extrinsic_param::KiltExtrinsicParams;
 use hex_literal::hex;
 use sp_core::H256;
 use sp_runtime::app_crypto::Pair;
 use std::fs;
 use subxt::tx::Era;
-use subxt::tx::SubstrateExtrinsicParamsBuilder;
 use subxt::{tx::PairSigner, Config, OnlineClient};
 
 use spiritnet::runtime_types as Pallets;
 use spiritnet::runtime_types::spiritnet_runtime::Call as Pallet;
+
+use crate::extrinsic_param::KiltExtrinsicParamsBuilder;
 
 #[subxt::subxt(runtime_metadata_path = "./artifacts/metadata/spirit-10730-rescue.scale")]
 pub mod spiritnet {}
@@ -37,7 +29,7 @@ impl Config for KiltConfig {
     type Header = sp_runtime::generic::Header<Self::BlockNumber, sp_runtime::traits::BlakeTwo256>;
     type Signature = sp_runtime::MultiSignature;
     type Extrinsic = sp_runtime::OpaqueExtrinsic;
-    type ExtrinsicParams = subxt::tx::SubstrateExtrinsicParams<Self>;
+    type ExtrinsicParams = KiltExtrinsicParams<Self>;
 }
 
 /// Simple program to create signed TX for specific runtime.
@@ -72,6 +64,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create a client to use:
     let api = OnlineClient::<KiltConfig>::from_url(args.websocket).await?;
 
+    spiritnet::validate_codegen(&api)?;
+
+    log::info!("Version {:#?}", api.runtime_version());
+
     // Create a transaction to submit:
     let tx = spiritnet::tx().council().propose(
         6,
@@ -86,16 +82,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     // Submit the transaction with default params:
-    let signed_tx = api
+    let tx = api
         .tx()
         .create_signed(
             &tx,
             &signer,
-            SubstrateExtrinsicParamsBuilder::new().era(Era::Immortal, api.genesis_hash()),
+            KiltExtrinsicParamsBuilder::new()
+                .era(Era::Immortal, api.genesis_hash())
+                .spec_version(10110)
+                .transaction_version(1),
         )
         .await?;
 
-    println!("submittable `0x{}`", hex::encode(signed_tx.encoded()));
+    println!("signed `0x{}`", hex::encode(tx.encoded()));
 
     Ok(())
 }
