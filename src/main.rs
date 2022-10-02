@@ -1,16 +1,9 @@
-mod extrinsic_param;
-
 use clap::Parser;
 use extrinsic_param::KiltExtrinsicParams;
-use hex_literal::hex;
-use sp_core::H256;
 use sp_runtime::app_crypto::Pair;
 use std::fs;
-use subxt::tx::Era;
+use subxt::tx::{Era, PlainTip};
 use subxt::{tx::PairSigner, Config, OnlineClient};
-
-use spiritnet::runtime_types as Pallets;
-use spiritnet::runtime_types::spiritnet_runtime::Call as Pallet;
 
 use crate::extrinsic_param::KiltExtrinsicParamsBuilder;
 
@@ -18,6 +11,9 @@ use crate::extrinsic_param::KiltExtrinsicParamsBuilder;
 pub mod spiritnet {}
 
 pub enum KiltConfig {}
+
+mod calls;
+mod extrinsic_param;
 
 impl Config for KiltConfig {
     type Index = u32;
@@ -47,6 +43,27 @@ struct Args {
     /// mnemonic file path
     #[arg(short, long)]
     nonce: u32,
+
+    /// mnemonic file path
+    #[arg(short, long)]
+    tip: Option<u128>,
+
+    /// mnemonic file path
+    #[arg(short, long)]
+    call: CallSelect,
+}
+
+#[derive(Debug, Clone, clap::ValueEnum)]
+enum CallSelect {
+    Preimage,
+    Propose,
+    VoteMotion,
+    CloseMotion,
+    FastTack,
+    VoteFastTrack,
+    CloseFastTrack,
+    VoteReferenda,
+    EnactUpgrade,
 }
 
 #[tokio::main]
@@ -68,31 +85,29 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     log::info!("Version {:#?}", api.runtime_version());
 
-    // Create a transaction to submit:
-    let tx = spiritnet::tx().council().propose(
-        6,
-        Pallet::ParachainSystem(
-            Pallets::cumulus_pallet_parachain_system::pallet::Call::authorize_upgrade {
-                code_hash: H256::from(&hex!(
-                    "ead2ae37aa6611275f39efdabd292c6338f4ab50f8bea4e8a783b7fe39894e59"
-                )),
-            },
-        ),
-        40,
-    );
+    let tx = match args.call {
+        CallSelect::Preimage => calls::preimage(),
+        CallSelect::Propose => calls::propose_external(),
+        CallSelect::VoteMotion => calls::vote_motion(),
+        CallSelect::CloseMotion => calls::close_motion(),
+        CallSelect::FastTack => calls::fast_track(),
+        CallSelect::VoteFastTrack => calls::vote_fast_track(),
+        CallSelect::CloseFastTrack => calls::close_fast_track(),
+        CallSelect::VoteReferenda => calls::vote_referenda(),
+        CallSelect::EnactUpgrade => calls::enact_upgrade(),
+    };
+
+    let mut params = KiltExtrinsicParamsBuilder::new()
+        .era(Era::Immortal, api.genesis_hash())
+        .spec_version(10110)
+        .transaction_version(1);
+
+    if let Some(tip) = args.tip {
+        params = params.tip(PlainTip::new(tip));
+    }
 
     // Submit the transaction with default params:
-    let tx = api
-        .tx()
-        .create_signed(
-            &tx,
-            &signer,
-            KiltExtrinsicParamsBuilder::new()
-                .era(Era::Immortal, api.genesis_hash())
-                .spec_version(10110)
-                .transaction_version(1),
-        )
-        .await?;
+    let tx = api.tx().create_signed(tx.as_ref(), &signer, params).await?;
 
     println!("signed `0x{}`", hex::encode(tx.encoded()));
 

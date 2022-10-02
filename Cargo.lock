@@ -285,9 +285,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.0.7"
+version = "4.0.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0a1af219c3e254a8b4649d6ddaef886b2015089f35f2ac5e1db31410c0566ab8"
+checksum = "5840cd9093aabeabf7fd932754c435b7674520fc3ddc935c397837050f0f1e4b"
 dependencies = [
  "atty",
  "bitflags",
@@ -300,9 +300,9 @@ dependencies = [
 
 [[package]]
 name = "clap_derive"
-version = "4.0.7"
+version = "4.0.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cd114ae53ce5a0670f43d2f169c1cd26c69b4896b0c121900cf1e4d06d67316c"
+checksum = "92289ffc6fb4a85d85c246ddb874c05a87a2e540fb6ad52f7ca07c8c1e1840b1"
 dependencies = [
  "heck 0.4.0",
  "proc-macro-error",
@@ -2361,8 +2361,7 @@ checksum = "6bdef32e8150c2a081110b42772ffe7d7c9032b606bc226c8260fd97e0976601"
 [[package]]
 name = "subxt"
 version = "0.24.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0a8757ee0e19f87e722577282ab1386c86592a4b13ff963b9c6ec4176348104c"
+source = "git+https://github.com/KILTprotocol/subxt.git#1a682d1fdd6f0b9d0b591e870d967d085377051f"
 dependencies = [
  "bitvec",
  "derivative",
@@ -2388,8 +2387,7 @@ dependencies = [
 [[package]]
 name = "subxt-codegen"
 version = "0.24.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb77f93e11e6ff3ff95fe33e3d24c27c342e16feca8ef47759993614ebe90d2c"
+source = "git+https://github.com/KILTprotocol/subxt.git#1a682d1fdd6f0b9d0b591e870d967d085377051f"
 dependencies = [
  "darling",
  "frame-metadata",
@@ -2406,8 +2404,7 @@ dependencies = [
 [[package]]
 name = "subxt-macro"
 version = "0.24.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "051cc21d77a54ae944b872eafdf9edfe1d9134fdfcfc3477dc10f763c76564a9"
+source = "git+https://github.com/KILTprotocol/subxt.git#1a682d1fdd6f0b9d0b591e870d967d085377051f"
 dependencies = [
  "darling",
  "proc-macro-error",
@@ -2418,8 +2415,7 @@ dependencies = [
 [[package]]
 name = "subxt-metadata"
 version = "0.24.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5ed78d80db3a97d55e8b1cfecc1f6f9e21793a589d4e2e5f4fe2d6d5850c2e54"
+source = "git+https://github.com/KILTprotocol/subxt.git#1a682d1fdd6f0b9d0b591e870d967d085377051f"
 dependencies = [
  "frame-metadata",
  "parity-scale-codec",
