@@ -100,7 +100,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut params = KiltExtrinsicParamsBuilder::new()
         .era(Era::Immortal, api.genesis_hash())
         .spec_version(10110)
-        .transaction_version(1);
+        .transaction_version(1)
+        .nonce(args.nonce);
 
     if let Some(tip) = args.tip {
         params = params.tip(PlainTip::new(tip));

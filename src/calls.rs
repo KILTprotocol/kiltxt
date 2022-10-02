@@ -43,7 +43,7 @@ pub fn preimage() -> Box<dyn TxPayload> {
 
 pub fn propose_external() -> Box<dyn TxPayload> {
     Box::new(spiritnet::tx().council().propose(
-        6,
+        5,
         Pallet::Democracy(
             Pallets::pallet_democracy::pallet::Call::external_propose_majority {
                 proposal_hash: REF_PROPOSAL_HASH,

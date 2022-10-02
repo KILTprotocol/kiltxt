@@ -28,6 +28,7 @@ pub struct KiltExtrinsicParamsBuilder<T: Config> {
     tip: PlainTip,
     spec_version: Option<u32>,
     transaction_version: Option<u32>,
+    nonce: Option<T::Index>,
 }
 
 impl<T: Config> KiltExtrinsicParamsBuilder<T> {
@@ -55,6 +56,11 @@ impl<T: Config> KiltExtrinsicParamsBuilder<T> {
         self.transaction_version = transaction_version.into();
         self
     }
+
+    pub fn nonce(mut self, nonce: T::Index) -> Self {
+        self.nonce = Some(nonce);
+        self
+    }
 }
 
 impl<T: Config> Default for KiltExtrinsicParamsBuilder<T> {
@@ -65,6 +71,7 @@ impl<T: Config> Default for KiltExtrinsicParamsBuilder<T> {
             tip: PlainTip::default(),
             spec_version: None,
             transaction_version: None,
+            nonce: None,
         }
     }
 }
@@ -85,7 +92,7 @@ impl<T: Config> ExtrinsicParams<T::Index, T::Hash> for KiltExtrinsicParams<T> {
             era: other_params.era,
             mortality_checkpoint: other_params.mortality_checkpoint.unwrap_or(genesis_hash),
             tip: other_params.tip,
-            nonce,
+            nonce: other_params.nonce.unwrap_or(nonce),
             spec_version: other_params.spec_version.unwrap_or(spec_version),
             transaction_version: other_params
                 .transaction_version
