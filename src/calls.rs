@@ -18,6 +18,13 @@ const REF_PROPOSAL_HASH: H256 = H256(hex!(
 /// The call bytes that should be executed parachain_system > authorize_code("0x1c46dd62730a80d3da9d43bd544ca30e32a3654a58edc9df0517249b5708b6c1")
 const REF_PROPOSAL_CALL: &[u8] =
     &hex!("50021c46dd62730a80d3da9d43bd544ca30e32a3654a58edc9df0517249b5708b6c1");
+
+const COUNCIL_PROPOSAL_HASH: H256 = H256(hex!(
+    "badeb42a59cddd2cab0f4d566c9901b3d14614adcfb9e5537b0e9efa51cf31b2"
+));
+const TC_PROPOSAL_HASH: H256 = H256(hex!(
+    "335bf73fd340f7e2ef821c8b97b2e45aafe3ffb367eff4d679a3b1adbbdfa9e4"
+));
 const PROPOSAL_WEIGHT: u64 = 900_000_000;
 const PROPOSAL_LENGTH: u32 = 100;
 
@@ -47,16 +54,16 @@ pub fn propose_external() -> Box<dyn TxPayload> {
 }
 
 pub fn vote_motion() -> Box<dyn TxPayload> {
-    Box::new(spiritnet::tx().council().vote(
-        REF_PROPOSAL_HASH, //FIXME
-        COUNCIL_PROPOSAL_INDEX,
-        true,
-    ))
+    Box::new(
+        spiritnet::tx()
+            .council()
+            .vote(COUNCIL_PROPOSAL_HASH, COUNCIL_PROPOSAL_INDEX, true),
+    )
 }
 
 pub fn close_motion() -> Box<dyn TxPayload> {
     Box::new(spiritnet::tx().council().close(
-        REF_PROPOSAL_HASH, //FIXME
+        COUNCIL_PROPOSAL_HASH,
         COUNCIL_PROPOSAL_INDEX,
         PROPOSAL_WEIGHT,
         PROPOSAL_LENGTH,
@@ -79,13 +86,13 @@ pub fn vote_fast_track() -> Box<dyn TxPayload> {
     Box::new(
         spiritnet::tx()
             .technical_committee()
-            .vote(REF_PROPOSAL_HASH, TC_PROPOSAL_INDEX, true),
+            .vote(TC_PROPOSAL_HASH, TC_PROPOSAL_INDEX, true),
     )
 }
 
 pub fn close_fast_track() -> Box<dyn TxPayload> {
     Box::new(spiritnet::tx().technical_committee().close(
-        REF_PROPOSAL_HASH,
+        TC_PROPOSAL_HASH,
         TC_PROPOSAL_INDEX,
         PROPOSAL_WEIGHT,
         PROPOSAL_LENGTH,
