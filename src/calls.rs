@@ -11,20 +11,27 @@ use hex_literal::hex;
 use sp_core::H256;
 use subxt::tx::TxPayload;
 
-const PROPOSAL_HASH: H256 = H256(hex!(
-    "af51c064817153d259ca698cd436264641da49074d0b30397e1d1834aeb2d033"
+/// Proposal hash for the referendum (parachain_system > authorize_code("0x1c46dd62730a80d3da9d43bd544ca30e32a3654a58edc9df0517249b5708b6c1"))
+const REF_PROPOSAL_HASH: H256 = H256(hex!(
+    "f26acc7507a206e050f96e4f010c4af8547fca163244a03a3635308104b44bae"
 ));
+/// The call bytes that should be executed parachain_system > authorize_code("0x1c46dd62730a80d3da9d43bd544ca30e32a3654a58edc9df0517249b5708b6c1")
+const REF_PROPOSAL_CALL: &[u8] =
+    &hex!("50021c46dd62730a80d3da9d43bd544ca30e32a3654a58edc9df0517249b5708b6c1");
 const PROPOSAL_WEIGHT: u64 = 900_000_000;
 const PROPOSAL_LENGTH: u32 = 100;
 
 const COUNCIL_PROPOSAL_INDEX: u32 = 28;
 const TC_PROPOSAL_INDEX: u32 = 11;
 const REFERENDA_INDEX: u32 = 11;
+const WASM_BLOB: &[u8] = include_bytes!("../artifacts/spiritnet-1.7.3-1.wasm");
 
 pub fn preimage() -> Box<dyn TxPayload> {
-    Box::new(spiritnet::tx().democracy().note_preimage(
-        hex!("5002ead2ae37aa6611275f39efdabd292c6338f4ab50f8bea4e8a783b7fe39894e59").to_vec(),
-    ))
+    Box::new(
+        spiritnet::tx()
+            .democracy()
+            .note_preimage(REF_PROPOSAL_CALL.to_vec()),
+    )
 }
 
 pub fn propose_external() -> Box<dyn TxPayload> {
@@ -32,7 +39,7 @@ pub fn propose_external() -> Box<dyn TxPayload> {
         6,
         Pallet::Democracy(
             Pallets::pallet_democracy::pallet::Call::external_propose_majority {
-                proposal_hash: PROPOSAL_HASH,
+                proposal_hash: REF_PROPOSAL_HASH,
             },
         ),
         40,
@@ -41,7 +48,7 @@ pub fn propose_external() -> Box<dyn TxPayload> {
 
 pub fn vote_motion() -> Box<dyn TxPayload> {
     Box::new(spiritnet::tx().council().vote(
-        PROPOSAL_HASH, //FIXME
+        REF_PROPOSAL_HASH, //FIXME
         COUNCIL_PROPOSAL_INDEX,
         true,
     ))
@@ -49,7 +56,7 @@ pub fn vote_motion() -> Box<dyn TxPayload> {
 
 pub fn close_motion() -> Box<dyn TxPayload> {
     Box::new(spiritnet::tx().council().close(
-        PROPOSAL_HASH, //FIXME
+        REF_PROPOSAL_HASH, //FIXME
         COUNCIL_PROPOSAL_INDEX,
         PROPOSAL_WEIGHT,
         PROPOSAL_LENGTH,
@@ -60,7 +67,7 @@ pub fn fast_track() -> Box<dyn TxPayload> {
     Box::new(spiritnet::tx().technical_committee().propose(
         5,
         Pallet::Democracy(Pallets::pallet_democracy::pallet::Call::fast_track {
-            proposal_hash: PROPOSAL_HASH,
+            proposal_hash: REF_PROPOSAL_HASH,
             voting_period: 1,
             delay: 1,
         }),
@@ -72,13 +79,13 @@ pub fn vote_fast_track() -> Box<dyn TxPayload> {
     Box::new(
         spiritnet::tx()
             .technical_committee()
-            .vote(PROPOSAL_HASH, TC_PROPOSAL_INDEX, true),
+            .vote(REF_PROPOSAL_HASH, TC_PROPOSAL_INDEX, true),
     )
 }
 
 pub fn close_fast_track() -> Box<dyn TxPayload> {
     Box::new(spiritnet::tx().technical_committee().close(
-        PROPOSAL_HASH,
+        REF_PROPOSAL_HASH,
         TC_PROPOSAL_INDEX,
         PROPOSAL_WEIGHT,
         PROPOSAL_LENGTH,
@@ -97,8 +104,8 @@ pub fn vote_referenda() -> Box<dyn TxPayload> {
 
 pub fn enact_upgrade() -> Box<dyn TxPayload> {
     Box::new(
-        spiritnet::tx().parachain_system().enact_authorized_upgrade(
-            include_bytes!("../artifacts/spiritnet-1.7.3-1.wasm").to_vec(),
-        ),
+        spiritnet::tx()
+            .parachain_system()
+            .enact_authorized_upgrade(WASM_BLOB.to_vec()),
     )
 }
