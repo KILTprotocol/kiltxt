@@ -7,7 +7,7 @@ use subxt::{tx::PairSigner, Config, OnlineClient};
 
 use crate::extrinsic_param::KiltExtrinsicParamsBuilder;
 
-#[subxt::subxt(runtime_metadata_path = "./artifacts/metadata/spirit-10730-rescue.scale")]
+#[subxt::subxt(runtime_metadata_path = "./artifacts/metadata/spirit-10101-as-10730.scale")]
 pub mod spiritnet {}
 
 pub enum KiltConfig {}
