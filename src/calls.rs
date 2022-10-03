@@ -13,17 +13,17 @@ use subxt::tx::TxPayload;
 
 /// Proposal hash for the referendum (parachain_system > authorize_code("0x1c46dd62730a80d3da9d43bd544ca30e32a3654a58edc9df0517249b5708b6c1"))
 const REF_PROPOSAL_HASH: H256 = H256(hex!(
-    "f26acc7507a206e050f96e4f010c4af8547fca163244a03a3635308104b44bae"
+    "fb8de2b39e7d3ea0ec67a8d4af356cb3e988ebae72a8f1eb2afcc1b85f20df34"
 ));
 /// The call bytes that should be executed parachain_system > authorize_code("0x1c46dd62730a80d3da9d43bd544ca30e32a3654a58edc9df0517249b5708b6c1")
 const REF_PROPOSAL_CALL: &[u8] =
-    &hex!("50021c46dd62730a80d3da9d43bd544ca30e32a3654a58edc9df0517249b5708b6c1");
+    &hex!("5004801c46dd62730a80d3da9d43bd544ca30e32a3654a58edc9df0517249b5708b6c1");
 
 const COUNCIL_PROPOSAL_HASH: H256 = H256(hex!(
-    "badeb42a59cddd2cab0f4d566c9901b3d14614adcfb9e5537b0e9efa51cf31b2"
+    "761a7cf0242c8d6ba247df76aa41ee75db5f4143b8de503858a152ef1276fe05"
 ));
 const TC_PROPOSAL_HASH: H256 = H256(hex!(
-    "335bf73fd340f7e2ef821c8b97b2e45aafe3ffb367eff4d679a3b1adbbdfa9e4"
+    "0c138353532284516427bf7ba2819874e542e6fbbe39325d17c3e63415b33ebf"
 ));
 const PROPOSAL_WEIGHT: u64 = 900_000_000;
 const PROPOSAL_LENGTH: u32 = 100;
