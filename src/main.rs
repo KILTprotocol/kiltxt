@@ -51,6 +51,10 @@ struct Args {
     /// mnemonic file path
     #[arg(short, long)]
     call: CallSelect,
+
+    /// mnemonic file path
+    #[arg(short, long, default_value = "false")]
+    send: bool,
 }
 
 #[derive(Debug, Clone, clap::ValueEnum)]
@@ -99,7 +103,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut params = KiltExtrinsicParamsBuilder::new()
         .era(Era::Immortal, api.genesis_hash())
-        .spec_version(10110)
+        .spec_version(10101)
         .transaction_version(1)
         .nonce(args.nonce);
 
@@ -111,6 +115,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let tx = api.tx().create_signed(tx.as_ref(), &signer, params).await?;
 
     println!("signed `0x{}`", hex::encode(tx.encoded()));
+
+    if args.send {
+        tx.submit_and_watch()
+            .await?
+            .wait_for_finalized_success()
+            .await?;
+    }
 
     Ok(())
 }

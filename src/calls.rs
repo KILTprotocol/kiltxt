@@ -30,7 +30,7 @@ const PROPOSAL_LENGTH: u32 = 100;
 
 const COUNCIL_PROPOSAL_INDEX: u32 = 28;
 const TC_PROPOSAL_INDEX: u32 = 11;
-const REFERENDA_INDEX: u32 = 11;
+const REFERENDA_INDEX: u32 = 22;
 const WASM_BLOB: &[u8] = include_bytes!("../artifacts/spiritnet-1.7.3-1.wasm");
 
 pub fn preimage() -> Box<dyn TxPayload> {
@@ -52,6 +52,12 @@ pub fn propose_external() -> Box<dyn TxPayload> {
         40,
     ))
 }
+
+// pub fn batch_preimage_and_propose_external() -> Box<dyn TxPayload> {
+//     Box::new(spiritnet::tx().utility().batch_all([
+//         Pallet::Council(Pallets::)
+//     ])
+// }
 
 pub fn vote_motion() -> Box<dyn TxPayload> {
     Box::new(
