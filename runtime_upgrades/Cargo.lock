@@ -318,9 +318,12 @@ name = "create-account-links"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "array-bytes",
+ "hex",
  "parity-scale-codec",
  "serde",
  "serde_json",
+ "sp-core",
  "sp-keyring",
  "subxt",
  "tiny-bip39 1.0.0",
