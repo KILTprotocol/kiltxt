@@ -147,6 +147,7 @@ pub mod post {
 		let alice = PairSigner::new(alice_pair.clone());
 		let mut handles = vec![];
 		let mut calls = vec![];
+		println!("Initiating ETH Migration for {} accounts", account_ids.len());
 
 		for account_id in account_ids.clone() {
 			if calls.len() == MAX_BATCH_SIZE || account_ids.last() == Some(&account_id) {

@@ -67,7 +67,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	}
 
 	// Post upgrade sanity checks
-	upgrade::post_upgrade_sanity_checks(api, post_upgrade_hash).await?;
+	upgrade::post_upgrade_sanity_checks(api.clone(), post_upgrade_hash).await?;
+
+	#[cfg(feature = "post-eth-migration")]
+	{
+		let migrating_accs = crate::migrations::eth::get_connnected_account_ids(api.clone()).await?;
+		crate::migrations::eth::post::migrate_account_ids(api.clone(), migrating_accs).await?;
+	}
 
 	Ok(())
 }
