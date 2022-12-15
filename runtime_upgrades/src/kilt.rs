@@ -5,12 +5,11 @@ use subxt::{
 };
 
 #[cfg(feature = "post-eth-migration")]
-// #[subxt::subxt(runtime_metadata_path = "artifacts/local-pere10900rc0.scale")]
-#[subxt::subxt(runtime_metadata_path = "artifacts/local-pere.scale")]
+#[subxt::subxt(runtime_metadata_path = "artifacts/local-pere10900rc0.scale")]
 pub mod kilt {}
 
 #[cfg(not(feature = "post-eth-migration"))]
-#[subxt::subxt(runtime_metadata_path = "artifacts/local-pere10900rc0.scale")]
+#[subxt::subxt(runtime_metadata_path = "artifacts/local-pere.scale")]
 pub mod kilt {}
 
 // re-export all the auto generated code

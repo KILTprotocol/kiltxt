@@ -10,7 +10,6 @@ fn set_code(wasm: &[u8]) -> StaticTxPayload<SudoUncheckedWeight> {
 		}),
 		Weight {
 			ref_time: 1_000_000_000,
-			// wproof_size: 0,
 		},
 	)
 }
@@ -19,7 +18,7 @@ pub async fn execute_set_code(
 	api: OnlineClient<KiltConfig>,
 	wasm_blob: &[u8],
 	sudo_pair: sp_keyring::sr25519::sr25519::Pair,
-) -> anyhow::Result<Option<sp_core::H256>> {
+) -> anyhow::Result<()> {
 	let sudo_signer = subxt::tx::PairSigner::new(sudo_pair);
 
 	println!("Preparung runtime upgrade via sudo.set_code");
@@ -34,5 +33,5 @@ pub async fn execute_set_code(
 		post_upgrade_block.extrinsic_hash()
 	);
 
-	Ok(Some(post_upgrade_block.block_hash()))
+	Ok(())
 }

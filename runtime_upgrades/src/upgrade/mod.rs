@@ -38,6 +38,7 @@ async fn traverse_back_n_blocks(
 /// TODO: Move checks to separate functions or Trait.
 pub async fn post_upgrade_sanity_checks(
 	api: OnlineClient<KiltConfig>,
+	// TODO: Rather use pre and post upgrade block inputs
 	start_block: Option<H256>,
 ) -> anyhow::Result<()> {
 	let current_block = api.blocks().at(start_block).await.unwrap();
@@ -123,7 +124,7 @@ pub async fn post_upgrade_sanity_checks(
 		.await?
 		.unwrap_or_default();
 	// Only soft check as dev chains have empty Technical Committee
-	println!("Post upgrade technical committee size is {:?}", current_ids.len());
+	println!("Post upgrade Technical Committee size is {:?}", current_ids.len());
 	let old_ids = api
 		.storage()
 		.fetch(&storage_key, Some(pre_upgrade_block_hash))
@@ -151,4 +152,15 @@ pub async fn post_upgrade_sanity_checks(
 	}
 
 	Ok(())
+}
+
+pub trait RuntimeUpgradeSanityChecker {
+	fn check_session_queued_keys() -> bool;
+	fn check_staking_top_candidates() -> bool;
+	fn check_council_members() -> bool;
+	fn check_technical_committee_members() -> bool;
+	// TODO:
+	// fn check_block_production
+	// fn check_authorship_authors
+	// fn check_democracy_referenda
 }
