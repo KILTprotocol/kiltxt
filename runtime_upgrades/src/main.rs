@@ -7,16 +7,12 @@ mod utility;
 
 use clap::Parser;
 use cli::Commands;
-use sp_core::crypto::AccountId32;
 use std::fs;
 use subxt::OnlineClient;
 
 use kilt::KiltConfig;
 use sp_core::Pair;
 use std::str::FromStr;
-use subxt::ext::sp_runtime::traits::Zero;
-
-const WASM_BLOB: &[u8] = include_bytes!("../artifacts/peregrine_10900rc0.wasm");
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -27,7 +23,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		Commands::SpawnConnectedDids(spawn_cmd) => {
 			#[cfg(feature = "pre-eth-migration")]
 			{
-				let (keypair, _) = sp_core::sr25519::Pair::from_string_with_seed(&spawn_cmd.mnemonic, None)
+				let (keypair, _) = sp_core::sr25519::Pair::from_string_with_seed(&spawn_cmd.seed, None)
 					.expect("Failed to create sr25519 keypair from provided mnemonic");
 
 				<migrations::eth::EthMigration as migrations::eth::pre::PreEthMigration>::spawn_linked_dids(
@@ -38,37 +34,54 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 				.await?;
 			}
 		}
-		Commands::ExecuteRuntimeUpgrade(subargs) => {
-			let wasm_blob: Vec<u8> = fs::read(&subargs.wasm_path)?;
-			let (keypair, _) = sp_core::sr25519::Pair::from_string_with_seed(&subargs.mnemonic, None)
+		Commands::ExecuteRuntimeUpgrade(upgrade_cmd) => {
+			let wasm_blob: Vec<u8> = fs::read(&upgrade_cmd.wasm_path)?;
+			let (keypair, _) = sp_core::sr25519::Pair::from_string_with_seed(&upgrade_cmd.seed, None)
 				.expect("Failed to create sr25519 keypair from provided mnemonic");
 			crate::extrinsics::upgrade::execute_set_code(api.clone(), &wasm_blob, keypair).await?;
-			// fs::write(args.last_upgrade_block_hash, hash.to_string());
+
+			// TODO: Feat: Listen to subsequent blocks for
+			// parachain_system::events::ValidationFunctionApplied which should
+			// happen a couple of blocks later
 		}
-		Commands::RuntimeUpgradeSanityCheck(hash_input) => {
-			let hash = sp_core::H256::from_str(&hash_input.hash).ok();
-			upgrade::post_upgrade_sanity_checks(api.clone(), hash).await?
+		Commands::RuntimeUpgradeSanityCheck(sanity_cmd) => {
+			let pre_upgrade = sp_core::H256::from_str(&sanity_cmd.hash).ok();
+			upgrade::post_upgrade_sanity_checks(api.clone(), None, pre_upgrade).await?
 		}
-		Commands::MigrateLinkableAccountIds(subargs) => {
-			#[cfg(feature = "post-eth-migration")]
+		Commands::MigrateLinkableAccountIds(migrate_cmd) => {
+			#[cfg(not(feature = "pre-eth-migration"))]
 			{
-				// let (keypair, _) =
-				// sp_core::sr25519::Pair::from_string_with_seed(&mnemonic.
-				// hex_seed, None) .expect("Failed to create sr25519 keypair
-				// from provided mnemonic"); let account_ids = if
-				// !args.account_ids.len().is_zero() {
-				// 	utility::read_from_file_account_ids(args.account_ids)?
-				// } else {
-				// 	<migrations::eth::EthMigration as
-				// migrations::eth::ConnectedAccountIds>::get(
-				// 		&migrations::eth::EthMigration(api),
-				// 	)
-				// 	.await?
-				// };
-				// let migrating_accs =
-				// crate::migrations::eth::get_connnected_account_ids(api.
-				// clone()).await?;
-				// crate::migrations::eth::post::migrate_account_ids_dynamically(api.clone(), migrating_accs).await?;
+				let (keypair, _) = sp_core::sr25519::Pair::from_string_with_seed(&migrate_cmd.seed, None).expect(
+					"Failed to create sr25519 keypair
+				from provided mnemonic",
+				);
+
+				// Only required in case [`migrate_account_ids`] finished and did not store all
+				// migrated ids in local database.
+				if let Some(stop_hash) = &migrate_cmd.traverse_blocks_stop_hash {
+					let newly_migrated = <migrations::eth::EthMigration as
+					migrations::eth::post::ExecuteAccountMigration>::traverse_migration_events(
+						&migrations::eth::EthMigration(api.clone()),
+						sp_core::H256::from_str(stop_hash).expect("Failed to derive upgrade block") )
+					.await?;
+					<migrations::eth::EthMigration as migrations::eth::post::ExecuteAccountMigration>::update_migrated_db(
+						newly_migrated,
+						migrate_cmd.migrated_db.clone(),
+					)?;
+				}
+
+				<migrations::eth::EthMigration as migrations::eth::post::ExecuteAccountMigration>::migrate_account_ids(
+					&migrations::eth::EthMigration(api.clone()),
+					keypair.clone(),
+					migrate_cmd.migrated_db.clone(),
+				)
+				.await?;
+
+				<migrations::eth::EthMigration as migrations::eth::post::ExecuteAccountMigration>::finalize_migration(
+					&migrations::eth::EthMigration(api),
+					keypair,
+				)
+				.await?;
 			}
 		}
 	}

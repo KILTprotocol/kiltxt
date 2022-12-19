@@ -5,6 +5,7 @@ use std::{
 };
 use subxt::ext::{sp_core::Pair, sp_runtime::app_crypto::sr25519};
 
+#[cfg(feature = "pre-eth-migration")]
 // Creates a temporary sr25519 keypair based on a random mnemonic which is not
 // expected to be required in the future
 pub fn create_proxy_keypair_sr25519() -> anyhow::Result<sp_keyring::sr25519::sr25519::Pair> {
@@ -16,10 +17,11 @@ pub fn create_proxy_keypair_sr25519() -> anyhow::Result<sp_keyring::sr25519::sr2
 		.or_else(|_| anyhow::bail!("Failed to create sr25519 keypair from random mnemonic {}", mnemonic))
 }
 
+#[cfg(not(feature = "pre-eth-migration"))]
 /// Read a vector of account ids from the given file. Expects values to be
 /// separated by new lines.
-pub fn read_from_file_account_ids(path: String) -> anyhow::Result<Vec<AccountId32>> {
-	let mut file = std::fs::File::open(path).expect("Failed to open list of account ids to migrate");
+pub fn fs_read_migrated_ids(path: String) -> anyhow::Result<Vec<AccountId32>> {
+	let file = std::fs::File::open(path).expect("Failed to open list of account ids to migrate");
 	let mut account_ids = vec![];
 	let reader = std::io::BufReader::new(file);
 	for line in reader.lines() {
@@ -32,12 +34,25 @@ pub fn read_from_file_account_ids(path: String) -> anyhow::Result<Vec<AccountId3
 	Ok(account_ids)
 }
 
-/// Writes a vector of account ids to the specified file. Writes each value to a
-/// separate line.
-pub fn write_file_account_ids(path: String, account_ids: Vec<AccountId32>) -> anyhow::Result<()> {
-	let mut file = std::fs::File::create(path)?;
+#[cfg(not(feature = "pre-eth-migration"))]
+/// Appends a vector of account ids to the specified file. Writes each value to
+/// a separate line.
+pub fn fs_append_migrated_ids(path: String, account_ids: Vec<AccountId32>) -> anyhow::Result<()> {
+	let mut file = std::fs::OpenOptions::new().write(true).append(true).open(path)?;
 	for account_id in account_ids {
-		write!(file, "{}", account_id.to_string())?;
+		writeln!(file, "{}", account_id.to_string())?;
 	}
 	Ok(())
 }
+
+// pub trait EventHandler {
+// 	fn exists<Ev, F, R>(events: ExtrinsicEvents<KiltConfig>, handler: F) ->
+// anyhow::Result<Option<R>> 	where
+// 		Ev: StaticEvent,
+// 		F: Fn(Ev) -> R,
+// 		dyn Fn(Ev): Sized,
+// 		R: Sized,
+// 	{
+// 		Ok(events.find_first::<Ev>()?.map(|event| handler(event)))
+// 	}
+// }

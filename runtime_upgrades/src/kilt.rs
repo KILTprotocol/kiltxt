@@ -4,12 +4,12 @@ use subxt::{
 	tx::PolkadotExtrinsicParams,
 };
 
-#[cfg(feature = "post-eth-migration")]
-#[subxt::subxt(runtime_metadata_path = "artifacts/local-pere10900rc0.scale")]
+#[cfg(not(feature = "pre-eth-migration"))]
+#[subxt::subxt(runtime_metadata_path = "artifacts/pere10900.scale")]
 pub mod kilt {}
 
-#[cfg(not(feature = "post-eth-migration"))]
-#[subxt::subxt(runtime_metadata_path = "artifacts/local-pere.scale")]
+#[cfg(feature = "pre-eth-migration")]
+#[subxt::subxt(runtime_metadata_path = "artifacts/pere10801.scale")]
 pub mod kilt {}
 
 // re-export all the auto generated code
@@ -18,7 +18,14 @@ pub use kilt::{
 	*,
 };
 
+#[cfg(not(feature = "pre-eth-migration"))]
+pub type RuntimeCall = kilt_runtime::RuntimeCall;
+#[cfg(not(feature = "pre-eth-migration"))]
+pub type RuntimeEvent = kilt_runtime::RuntimeEvent;
+
+#[cfg(feature = "pre-eth-migration")]
 pub type RuntimeCall = kilt_runtime::Call;
+#[cfg(feature = "pre-eth-migration")]
 pub type RuntimeEvent = kilt_runtime::Event;
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
