@@ -16,12 +16,14 @@ pub struct Args {
 
 #[derive(Subcommand, Debug)]
 pub enum Commands {
+	#[cfg(all(feature = "10801", not(feature = "default")))]
 	SpawnConnectedDids(SpawnCmd),
 	ExecuteRuntimeUpgrade(UpgradeCmd),
 	RuntimeUpgradeSanityCheck(SanityCheckCmd),
 	MigrateLinkableAccountIds(EthMigrationCmd),
 }
 
+#[cfg(all(feature = "10801", not(feature = "default")))]
 #[derive(clap::Args, Debug)]
 pub struct SpawnCmd {
 	#[arg(

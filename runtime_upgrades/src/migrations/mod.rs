@@ -20,7 +20,7 @@ async fn filter_blocks_for_event<R, F: Fn(&Events<KiltConfig>) -> anyhow::Result
 		.blocks()
 		.at(None)
 		.await
-		.expect(&format!("Failed to retrieve latest block"));
+		.unwrap_or_else(|_| panic!("Failed to retrieve latest block"));
 
 	let mut v = vec![];
 	while Some(block.hash()) != start_hash && block.number() > 0 {
@@ -32,7 +32,7 @@ async fn filter_blocks_for_event<R, F: Fn(&Events<KiltConfig>) -> anyhow::Result
 			.blocks()
 			.at(block.header().parent_hash.into())
 			.await
-			.expect(&format!("Failed to retrieve parent block for {:?}", block.hash()));
+			.unwrap_or_else(|_| panic!("Failed to retrieve parent block for {:?}", block.hash()));
 	}
 
 	Ok(v)

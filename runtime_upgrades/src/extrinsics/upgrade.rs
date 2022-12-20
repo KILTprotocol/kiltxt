@@ -1,17 +1,25 @@
 use crate::{
 	kilt,
-	kilt::{sudo::calls::SudoUncheckedWeight, KiltConfig},
+	kilt::{kilt_runtime, sudo::calls::SudoUncheckedWeight, KiltConfig},
 };
 use subxt::{tx::StaticTxPayload, OnlineClient};
 
 fn set_code(wasm: &[u8]) -> StaticTxPayload<SudoUncheckedWeight> {
+	#[cfg(all(feature = "10801", not(feature = "default")))]
+	{
+		kilt::tx().sudo().sudo_unchecked_weight(
+			kilt_runtime::Call::System(kilt::runtime_types::frame_system::pallet::Call::set_code {
+				code: wasm.to_vec(),
+			}),
+			kilt::runtime_types::frame_support::weights::weight_v2::Weight {
+				ref_time: 1_000_000_000,
+			},
+		)
+	}
 	kilt::tx().sudo().sudo_unchecked_weight(
-		kilt::RuntimeCall::System(kilt::runtime_types::frame_system::pallet::Call::set_code { code: wasm.to_vec() }),
-		#[cfg(feature = "pre-eth-migration")]
-		kilt::runtime_types::frame_support::weights::weight_v2::Weight {
-			ref_time: 1_000_000_000,
-		},
-		#[cfg(not(feature = "pre-eth-migration"))]
+		kilt_runtime::RuntimeCall::System(kilt::runtime_types::frame_system::pallet::Call::set_code {
+			code: wasm.to_vec(),
+		}),
 		kilt::runtime_types::sp_weights::weight_v2::Weight {
 			ref_time: 1_000_000_000,
 			proof_size: 0,

@@ -1,40 +1,45 @@
 use crate::{
 	kilt,
-	kilt::runtime_types::did::did_details::{DidCreationDetails, DidSignature},
+	kilt::{
+		kilt_runtime::RuntimeCall,
+		runtime_types::did::did_details::{DidCreationDetails, DidSignature},
+	},
 };
 use codec::Encode;
 use sp_keyring::sr25519::sr25519::Public;
 use subxt::ext::sp_core::crypto::Pair;
 
-#[cfg(feature = "pre-eth-migration")]
+#[cfg(all(feature = "10801", not(feature = "default")))]
+use crate::kilt::kilt_runtime::Call as RuntimeCall;
+
+#[cfg(all(feature = "10801", not(feature = "default")))]
 const DID_EXPIRATION: u64 = 5_000_000;
 
 pub trait Did {
 	/// Create a DID based on the specified public account and and did key
-	fn create(public_pair: Public, did_key: sp_keyring::sr25519::sr25519::Pair) -> kilt::RuntimeCall;
+	fn create(public_pair: Public, did_key: sp_keyring::sr25519::sr25519::Pair) -> RuntimeCall;
 	/// Link the specified DID key to a public account for the given block
-	#[cfg(feature = "pre-eth-migration")]
+	#[cfg(all(feature = "10801", not(feature = "default")))]
 	fn link_account(
 		public_key: Public,
 		did_keypair: sp_keyring::sr25519::sr25519::Pair,
 		current_block: u64,
-	) -> kilt::RuntimeCall;
-	#[cfg(feature = "pre-eth-migration")]
+	) -> RuntimeCall;
+	#[cfg(all(feature = "10801", not(feature = "default")))]
 	fn get_wrapped_payload(payload: &[u8]) -> Vec<u8>;
 }
 
 /// Provides calls for a dummy DID defaulting to sr25519 sig
 pub struct DummyDid {}
 impl Did for DummyDid {
-	fn create(public_pair: Public, did_key: sp_keyring::sr25519::sr25519::Pair) -> kilt::RuntimeCall {
+	fn create(public_pair: Public, did_key: sp_keyring::sr25519::sr25519::Pair) -> RuntimeCall {
 		let creation_details = DidCreationDetails {
 			did: did_key.public().into(),
 			submitter: public_pair.into(),
-			#[cfg(feature = "pre-eth-migration")]
+			#[cfg(all(feature = "10801", not(feature = "default")))]
 			new_key_agreement_keys: kilt::runtime_types::sp_runtime::bounded::bounded_btree_set::BoundedBTreeSet(
 				vec![],
 			),
-			#[cfg(not(feature = "pre-eth-migration"))]
 			new_key_agreement_keys: kilt::runtime_types::sp_core::bounded::bounded_btree_set::BoundedBTreeSet(vec![]),
 			new_attestation_key: None,
 			new_delegation_key: None,
@@ -45,18 +50,18 @@ impl Did for DummyDid {
 			did_key.sign(&creation_details.encode()).0,
 		));
 
-		kilt::RuntimeCall::Did(kilt::runtime_types::did::pallet::Call::create {
+		RuntimeCall::Did(kilt::runtime_types::did::pallet::Call::create {
 			details: Box::new(creation_details),
 			signature,
 		})
 	}
 
-	#[cfg(feature = "pre-eth-migration")]
+	#[cfg(all(feature = "10801", not(feature = "default")))]
 	fn link_account(
 		public_key: Public,
 		did_keypair: sp_keyring::sr25519::sr25519::Pair,
 		current_block: u64,
-	) -> kilt::RuntimeCall {
+	) -> RuntimeCall {
 		let addr = subxt::ext::sp_runtime::AccountId32::from(did_keypair.public());
 
 		let proof =
@@ -65,7 +70,7 @@ impl Did for DummyDid {
 					.sign(&Self::get_wrapped_payload(&(&addr, DID_EXPIRATION).encode()))
 					.0,
 			));
-		let associate_account_call = kilt::RuntimeCall::DidLookup(
+		let associate_account_call = RuntimeCall::DidLookup(
 			kilt::runtime_types::pallet_did_lookup::pallet::Call::associate_account {
 				account: did_keypair.public().into(),
 				expiration: DID_EXPIRATION,
@@ -83,14 +88,14 @@ impl Did for DummyDid {
 			did_keypair.sign(&did_call.encode()).0,
 		));
 
-		kilt::RuntimeCall::Did(kilt::runtime_types::did::pallet::Call::submit_did_call {
+		RuntimeCall::Did(kilt::runtime_types::did::pallet::Call::submit_did_call {
 			did_call: Box::new(did_call),
 			signature,
 		})
 	}
 
 	// Copy pasted from mashnet node 2022-12-16
-	#[cfg(feature = "pre-eth-migration")]
+	#[cfg(all(feature = "10801", not(feature = "default")))]
 	fn get_wrapped_payload(payload: &[u8]) -> Vec<u8> {
 		b"<Bytes>"
 			.iter()

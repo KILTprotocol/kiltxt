@@ -20,19 +20,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	let api = OnlineClient::<KiltConfig>::from_url(args.websocket).await?;
 
 	match &args.command {
+		#[cfg(all(feature = "10801", not(feature = "default")))]
 		Commands::SpawnConnectedDids(spawn_cmd) => {
-			#[cfg(feature = "pre-eth-migration")]
-			{
-				let (keypair, _) = sp_core::sr25519::Pair::from_string_with_seed(&spawn_cmd.seed, None)
-					.expect("Failed to create sr25519 keypair from provided mnemonic");
+			let (keypair, _) = sp_core::sr25519::Pair::from_string_with_seed(&spawn_cmd.seed, None)
+				.expect("Failed to create sr25519 keypair from provided mnemonic");
 
-				<migrations::eth::EthMigration as migrations::eth::pre::PreEthMigration>::spawn_linked_dids(
-					&migrations::eth::EthMigration(api),
-					keypair,
-					spawn_cmd.num_dids,
-				)
-				.await?;
-			}
+			<migrations::eth::EthMigration as migrations::eth::pre::PreEthMigration>::spawn_linked_dids(
+				&migrations::eth::EthMigration(api),
+				keypair,
+				spawn_cmd.num_dids,
+			)
+			.await?;
 		}
 		Commands::ExecuteRuntimeUpgrade(upgrade_cmd) => {
 			let wasm_blob: Vec<u8> = fs::read(&upgrade_cmd.wasm_path)?;
@@ -49,7 +47,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 			upgrade::post_upgrade_sanity_checks(api.clone(), None, pre_upgrade).await?
 		}
 		Commands::MigrateLinkableAccountIds(migrate_cmd) => {
-			#[cfg(not(feature = "pre-eth-migration"))]
 			{
 				let (keypair, _) = sp_core::sr25519::Pair::from_string_with_seed(&migrate_cmd.seed, None).expect(
 					"Failed to create sr25519 keypair

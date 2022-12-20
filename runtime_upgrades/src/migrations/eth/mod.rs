@@ -32,7 +32,7 @@ impl ConnectedAccountIds for EthMigration {
 	}
 }
 
-#[cfg(feature = "pre-eth-migration")]
+#[cfg(all(feature = "10801", not(feature = "default")))]
 pub mod pre {
 	use async_trait::async_trait;
 	use sp_core::Pair as PairT;
@@ -122,13 +122,12 @@ pub mod pre {
 	}
 }
 
-#[cfg(not(feature = "pre-eth-migration"))]
 pub mod post {
 	use super::{ConnectedAccountIds, EthMigration};
 	use crate::{
 		kilt,
 		kilt::{
-			kilt::did_lookup::events::{Migrated, MigrationCompleted},
+			metadata::did_lookup::events::{Migrated, MigrationCompleted},
 			KiltConfig,
 		},
 	};
@@ -176,14 +175,13 @@ pub mod post {
 			let mut migrated = crate::utility::fs_read_migrated_ids(file_path.clone())?;
 			migrated.dedup();
 			// Read account ids from chain
-			let all_ids = EthMigration::get_from_chain(&self).await?;
+			let all_ids = EthMigration::get_from_chain(self).await?;
 			println!(
 				"Number of accounts which were already migrated: {} vs. total {}",
 				migrated.len(),
 				all_ids.len()
 			);
 			let unmigrated: Vec<AccountId32> = all_ids
-				.clone()
 				.into_iter()
 				.filter(|id| !migrated.iter().any(|r| r == id))
 				.collect();
@@ -192,11 +190,11 @@ pub mod post {
 		}
 
 		fn update_migrated_db(newly_migrated: Vec<AccountId32>, file_path: String) -> anyhow::Result<()> {
-			crate::utility::fs_append_migrated_ids(file_path.clone(), newly_migrated)
+			crate::utility::fs_append_migrated_ids(file_path, newly_migrated)
 		}
 
 		async fn migrate_account_ids(&self, signer_pair: Pair, migrated_id_path: String) -> anyhow::Result<()> {
-			let unmigrated = Self::get_migrated_ids(&self, migrated_id_path.clone()).await?;
+			let unmigrated = Self::get_migrated_ids(self, migrated_id_path.clone()).await?;
 			let account_chunks: Vec<Vec<AccountId32>> =
 				unmigrated.chunks(MAX_BATCH_SIZE).map(|chunk| chunk.into()).collect();
 

@@ -1,32 +1,21 @@
+// Oppress complaints inherited by metadata
+#![allow(clippy::enum_variant_names)]
+
 use subxt::{
 	config::Config,
 	ext::sp_runtime::traits::{IdentifyAccount, Verify},
 	tx::PolkadotExtrinsicParams,
 };
 
-#[cfg(not(feature = "pre-eth-migration"))]
 #[subxt::subxt(runtime_metadata_path = "artifacts/pere10900.scale")]
-pub mod kilt {}
+pub mod metadata {}
 
-#[cfg(feature = "pre-eth-migration")]
+#[cfg(all(feature = "10801", not(feature = "default")))]
 #[subxt::subxt(runtime_metadata_path = "artifacts/pere10801.scale")]
-pub mod kilt {}
+pub mod metadata {}
 
 // re-export all the auto generated code
-pub use kilt::{
-	runtime_types::{did::pallet as did, pallet_did_lookup::pallet as did_lookup, peregrine_runtime as kilt_runtime},
-	*,
-};
-
-#[cfg(not(feature = "pre-eth-migration"))]
-pub type RuntimeCall = kilt_runtime::RuntimeCall;
-#[cfg(not(feature = "pre-eth-migration"))]
-pub type RuntimeEvent = kilt_runtime::RuntimeEvent;
-
-#[cfg(feature = "pre-eth-migration")]
-pub type RuntimeCall = kilt_runtime::Call;
-#[cfg(feature = "pre-eth-migration")]
-pub type RuntimeEvent = kilt_runtime::Event;
+pub use metadata::{runtime_types::peregrine_runtime as kilt_runtime, *};
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct KiltConfig;

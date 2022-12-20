@@ -120,7 +120,6 @@ pub async fn post_upgrade_sanity_checks(
 		);
 	}
 
-	#[cfg(not(feature = "pre-eth-migration"))]
 	{
 		let storage_key = kilt::storage().did_lookup().migration_ongoing();
 		let migration_ongoing = api.storage().fetch(&storage_key, None).await?;

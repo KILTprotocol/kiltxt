@@ -24,6 +24,4 @@ tokio = { version = "1.23.0", features = ["full"] }
 
 [features]
 default = []
-pre-eth-migration = []
-post-eth-migration = []
-upgrade-set-code = []
+10801 = []

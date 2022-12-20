@@ -3,9 +3,11 @@ use std::{
 	io::{BufRead, Write},
 	str::FromStr,
 };
+
+#[cfg(all(feature = "10801", not(feature = "default")))]
 use subxt::ext::{sp_core::Pair, sp_runtime::app_crypto::sr25519};
 
-#[cfg(feature = "pre-eth-migration")]
+#[cfg(all(feature = "10801", not(feature = "default")))]
 // Creates a temporary sr25519 keypair based on a random mnemonic which is not
 // expected to be required in the future
 pub fn create_proxy_keypair_sr25519() -> anyhow::Result<sp_keyring::sr25519::sr25519::Pair> {
@@ -17,7 +19,6 @@ pub fn create_proxy_keypair_sr25519() -> anyhow::Result<sp_keyring::sr25519::sr2
 		.or_else(|_| anyhow::bail!("Failed to create sr25519 keypair from random mnemonic {}", mnemonic))
 }
 
-#[cfg(not(feature = "pre-eth-migration"))]
 /// Read a vector of account ids from the given file. Expects values to be
 /// separated by new lines.
 pub fn fs_read_migrated_ids(path: String) -> anyhow::Result<Vec<AccountId32>> {
@@ -34,13 +35,12 @@ pub fn fs_read_migrated_ids(path: String) -> anyhow::Result<Vec<AccountId32>> {
 	Ok(account_ids)
 }
 
-#[cfg(not(feature = "pre-eth-migration"))]
 /// Appends a vector of account ids to the specified file. Writes each value to
 /// a separate line.
 pub fn fs_append_migrated_ids(path: String, account_ids: Vec<AccountId32>) -> anyhow::Result<()> {
 	let mut file = std::fs::OpenOptions::new().write(true).append(true).open(path)?;
 	for account_id in account_ids {
-		writeln!(file, "{}", account_id.to_string())?;
+		writeln!(file, "{}", account_id)?;
 	}
 	Ok(())
 }
